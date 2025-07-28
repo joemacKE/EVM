@@ -35,17 +35,22 @@ class CustomUserManager(BaseUserManager):
 
 class CustomUser(AbstractUser):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    name = models.CharField(max_length=120)
+    first_name = models.CharField(max_length=120)
+    last_name = models.CharField(max_length=120)
     email = models.EmailField(unique=True)
     is_active = models.BooleanField(default=True)
     created_at = models.DateField(auto_now_add=True)
     phone_number = models.CharField(max_length=10)
-    profile_pic = models.ImageField(upload_to='profile_pic/') #must check this later
+    profile_pic = models.ImageField(upload_to='profile/') #must check this later
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
 
     object = CustomUserManager()
+
+
+    def __str__(self):
+        return f"{self.first_name} {self.email}"
 
     ...
 
