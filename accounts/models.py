@@ -7,7 +7,7 @@ from django.contrib.auth.base_user import BaseUserManager
 class CustomUserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
         if not email:
-            raise ValueError("You must provide valid email (example@email.com)")
+            raise ValueError("You must provide valid email (example@gmail.com)")
 
         user = self.model(
             email = self.nomralize_email(email),
@@ -20,6 +20,8 @@ class CustomUserManager(BaseUserManager):
 
     
     def create_superuser(self, email, password=None, **extrafields):
+        if not email:
+            raise ValueError("You must provide a valid email (example@gmail.com)")
         user = self.create_user(
             email = email,
             password = password
