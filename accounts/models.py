@@ -48,7 +48,7 @@ class CustomUser(AbstractUser):
     is_active = models.BooleanField(default=True)
     created_at = models.DateField(auto_now_add=True)
     phone_number = models.CharField(max_length=10)
-    profile_pic = models.ImageField(upload_to='profile/') #must check this later
+    profile_pic = models.ImageField(upload_to='profile/', blank=True) #must check this later
 
     USERNAME_FIELD = 'email'
 
