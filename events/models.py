@@ -4,6 +4,7 @@ from django.conf import settings
 
 class Event(models.Model):
     TYPE_OF_EVENT = [
+        ('select', 'Select an Event'),
         ('conference', 'Conference'),
         ('webinar', 'Webinar'),
         ('meet_and_greet', 'Meet and Greet'),
@@ -21,7 +22,7 @@ class Event(models.Model):
         ('cancelled', 'Cancelled'),
         ('completed', 'Completed')
     ]
-    oganizer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    organizer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='events')
     name = models.CharField(max_length=200)
     description = models.TextField()
     start_date = models.DateField()
@@ -32,12 +33,13 @@ class Event(models.Model):
     capacity = models.PositiveIntegerField()
     category = models.CharField(max_length=120, choices=TYPE_OF_EVENT)
     status = models.CharField(max_length=120, choices=STATUS_CHOICES)
-    image = models.ImageField(upload_to='images/')
-
-
+    image = models.ImageField(upload_to='images/', null=True, blank=True)
     location = models.CharField(max_length=200)
-    created_at = models.DateField(auto_now_add=True)
-    updated_at = models.DateField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Event: {self.name} Description: {self.description} Start Date: {self.start_date} Start Time: {self.start_time} Location: {self.location}"
 
 
 
