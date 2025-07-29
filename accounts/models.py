@@ -36,7 +36,6 @@ class CustomUserManager(BaseUserManager):
 
 
 class CustomUser(AbstractUser):
-    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     first_name = models.CharField(max_length=120)
     last_name = models.CharField(max_length=120)
     email = models.EmailField(unique=True)
@@ -48,7 +47,7 @@ class CustomUser(AbstractUser):
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
 
-    object = CustomUserManager()
+    objects = CustomUserManager()
 
 
     def __str__(self):
