@@ -10,7 +10,7 @@ class CustomUserManager(BaseUserManager):
             raise ValueError("You must provide valid email (example@gmail.com)")
 
         user = self.model(
-            email = self.nomralize_email(email),
+            email = self.normalize_email(email),
             password = password
             )
         user.set_password(password)
@@ -26,7 +26,7 @@ class CustomUserManager(BaseUserManager):
             email = email,
             password = password
         )
-        user.is_admin - True
+
         user.is_staff = True
         user.is_superuser = True
         user.save(using=self._db)
@@ -51,6 +51,7 @@ class CustomUser(AbstractUser):
     profile_pic = models.ImageField(upload_to='profile/') #must check this later
 
     USERNAME_FIELD = 'email'
+
     REQUIRED_FIELDS = []
 
     objects = CustomUserManager()
