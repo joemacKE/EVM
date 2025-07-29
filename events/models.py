@@ -13,7 +13,7 @@ class Event(models.Model):
         ('movie_night', 'Movie Night'),
         ('r_n_b_night', 'RnB Night'),
         ('pack_and_chill', 'Pack and Chill'),
-        ('pack_and_gril', 'Pack and Grill'),
+        ('pack_and_grill', 'Pack and Grill'),
         ('others', 'Others'),
     ]
     STATUS_CHOICES = [
