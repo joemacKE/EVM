@@ -50,6 +50,7 @@ class CustomUser(AbstractUser):
     phone_number = models.CharField(max_length=10)
     profile_pic = models.ImageField(upload_to='profile/', blank=True) #must check this later
 
+
     USERNAME_FIELD = 'email'
 
     REQUIRED_FIELDS = []
