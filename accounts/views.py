@@ -10,4 +10,5 @@ class RegisterView(APIView):
             serializer.save()
             return Response({"message": "User is registered succesfully"}, status = status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+    def put(self, request, pk):
+        ...

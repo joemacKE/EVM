@@ -2,6 +2,7 @@ from django.db import models
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.base_user import BaseUserManager
+from events.models import Event
 
 
 class CustomUserManager(BaseUserManager):
@@ -46,10 +47,13 @@ class CustomUser(AbstractUser):
     email = models.EmailField(unique=True)
     username = models.CharField(max_length=120)
     salutation = models.CharField(max_length=50, choices=SALUTATION)
+    dob = models.DateTimeField()
     is_active = models.BooleanField(default=True)
     created_at = models.DateField(auto_now_add=True)
     phone_number = models.CharField(max_length=10)
     profile_pic = models.ImageField(upload_to='profile/', blank=True) #must check this later
+    bio = models.TextField()
+
 
 
     USERNAME_FIELD = 'email'
@@ -60,7 +64,8 @@ class CustomUser(AbstractUser):
 
 
     def __str__(self):
-        return f"Hello: {self.salutation} {self.first_name} {self.email}"
+        return f"Hello {self.salutation} {self.first_name} {self.last_name}"
+
 
 
 

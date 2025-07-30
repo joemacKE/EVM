@@ -38,6 +38,11 @@ class EventSerializer(serializers.ModelSerializer):
         model = Event
         fields = '__all__'
         read_only_fields = ['created_at', 'updated_at']
+
+    
+    def create(self, validate_data):
+        return Event(**validate_data)
+    
     # name = serializers.CharField()
     # description = serializers.CharField()
     # start_date = serializers.DateField()
@@ -59,22 +64,22 @@ class EventSerializer(serializers.ModelSerializer):
     #     return Event.objects.create(**validated_data)
     
 
-    # #handles the updates
-    # def update(self, instance,  **validated_data):
-    #     instance.name = validated_data.get('name', instance.name)
-    #     instance.description = validated_data.get('description', instance.description)
-    #     instance.start_date = validated_data.get('start_date', instance.start_date)
-    #     instance.end_date = validated_data.get('end_date', instance.end_date)
-    #     instance.start_time = validated_data.get('start_time', instance.start_time)
-    #     instance.end_time = validated_data.get('end_time', instance.end_time)
-    #     instance.is_public = validated_data.get('is_public', instance.is_public)
-    #     instance.capacity = validated_data.get('capacity', instance.capacity)
-    #     instance.category = validated_data.get('category', instance.category)
-    #     instance.status = validated_data.get('status', instance.status)
-    #     instance.image = validated_data.get('image', instance.image)
-    #     instance.location = validated_data.get('location', instance.location)
-    #     instance.created_at = validated_data.get('created_at', instance.created_at)
-    #     instance.updated_at = validated_data.get('updated_at', instance.updated_at)
-    #     instance.save()
-    #     return instance
+    #handles the updates
+    def update(self, instance,  validated_data):
+        instance.name = validated_data.get('name', instance.name)
+        instance.description = validated_data.get('description', instance.description)
+        instance.start_date = validated_data.get('start_date', instance.start_date)
+        instance.end_date = validated_data.get('end_date', instance.end_date)
+        instance.start_time = validated_data.get('start_time', instance.start_time)
+        instance.end_time = validated_data.get('end_time', instance.end_time)
+        instance.is_public = validated_data.get('is_public', instance.is_public)
+        instance.capacity = validated_data.get('capacity', instance.capacity)
+        instance.category = validated_data.get('category', instance.category)
+        instance.status = validated_data.get('status', instance.status)
+        instance.image = validated_data.get('image', instance.image)
+        instance.location = validated_data.get('location', instance.location)
+        instance.created_at = validated_data.get('created_at', instance.created_at)
+        instance.updated_at = validated_data.get('updated_at', instance.updated_at)
+        instance.save()
+        return instance
 

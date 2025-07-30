@@ -1,8 +1,15 @@
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.views import APIView
 from events.api.serializers import EventSerializer
 from rest_framework.decorators import APIView, api_view
 from rest_framework.response import Response
 from events.models import Event
 from rest_framework import status
+
+class EventList(APIView):
+    def get(self, request, format=None):
+        events = Event.objects.all()
+
 
 @api_view(['GET', 'POST'])
 def event_list(request):
@@ -37,7 +44,9 @@ def event_details(request, pk):
             event = Event.objects.get(pk=pk)
         except Event.DoesNotExist:
             return Response({'error': 'Event Not Found'}, status = status.HTTP_404_NOT_FOUND)
-        serializer = EventSerializer(event)
+        serializer = EventSerializer(event, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
         return Response(serializer.data)
     
     if request.method == "DELETE":

@@ -27,4 +27,11 @@ class RegisterSerializer(serializers.ModelSerializer):
 
         )
         return user
+    def update(self, instance, validated_data):
+        instance.username = validated_data.get('username', instance.username)
+        instance.salutation = validated_data.get('salutation', instance.salutation)
+        instance.phone_number = validated_data.get('phone_number', instance.phone_number)
+        instance.profile_pic = validated_data.get('profile_pic', instance.profile_pic)
+        instance.save()
+        return instance
         

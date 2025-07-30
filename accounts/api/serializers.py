@@ -10,7 +10,15 @@ class RegisterSerializer(serializers.ModelSerializer):
     profile_pic = serializers.ImageField(required=False)
     class Meta:
         model = CustomUser
-        fields = '__all__'
+        fields = [
+            'email',
+            'password',
+            'first_name',
+            'last_name',
+            'salutation',
+            'phone_number',
+            'profile_pic',
+        ]
     
 
     def create(self, validated_data):
