@@ -44,6 +44,7 @@ class CustomUser(AbstractUser):
     first_name = models.CharField(max_length=120)
     last_name = models.CharField(max_length=120)
     email = models.EmailField(unique=True)
+    username = models.CharField(max_length=120)
     salutation = models.CharField(max_length=50, choices=SALUTATION)
     is_active = models.BooleanField(default=True)
     created_at = models.DateField(auto_now_add=True)

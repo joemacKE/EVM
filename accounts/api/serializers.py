@@ -14,6 +14,7 @@ class RegisterSerializer(serializers.ModelSerializer):
     
 
     def create(self, validated_data):
+        profile_pic = validated_data.get('profile_pic', None)
         user = CustomUser.objects.create_user(
             username = validated_data['email'],
             email = validated_data['email'],
@@ -21,7 +22,6 @@ class RegisterSerializer(serializers.ModelSerializer):
             first_name = validated_data['first_name'],
             last_name = validated_data['last_name'],
             phone_number = validated_data['salutation'],
-            profile_pic = validated_data['profile_pic'],
             password = validated_data['password']
         
 
