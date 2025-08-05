@@ -16,3 +16,5 @@ class RegisterView(APIView):
             return Response({"message": "User is registered succesfully"}, status = status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
+class LogOutView(APIView):
+    ...
