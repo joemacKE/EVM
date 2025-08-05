@@ -7,12 +7,14 @@ from events.models import Event
 from rest_framework import status
 
 class EventListAPIView(APIView):
+    #retrieving list of events listed
     def get(self, request):
         events = Event.objects.all()
         serializer = EventSerializer(events, many=True)
         return Response(serializer.data)
 
 class EventDetailAPIView(APIView):
+    #retrieves a single event by ID
     def get(self, request, pk):
         try:
             event = Event.objects.get(pk=pk)
@@ -22,6 +24,7 @@ class EventDetailAPIView(APIView):
         return Response(serializer.data)
     
     def post(self, request, pk):
+        #creating and posting an event
         serializer = EventSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -29,6 +32,7 @@ class EventDetailAPIView(APIView):
         return Response(serializer.errors)
     
     def put(self, request, pk):
+        #retreiving and updating a singl event by an ID
         try:
             event = Event.objects.get(pk=pk)
         except Event.DoesNotExist:
@@ -39,6 +43,7 @@ class EventDetailAPIView(APIView):
         return Response(serializer.data)
     
     def delete(self, request, pk):
+        #deleting a single event by ID
         try:
             event = Event.objects.get(pk=pk)
         except Event.DoesNotExist:

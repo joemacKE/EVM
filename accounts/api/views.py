@@ -10,11 +10,20 @@ class RegisterView(APIView):
 
 
     def post(self, request):
+        #registering a user
         serializer = RegisterSerializer(data = request.data)
         if serializer.is_valid():
             serializer.save()
             return Response({"message": "User is registered succesfully"}, status = status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    def put(self, request):
+        #updating user profile
+        ...
+
+    def delet(self, request):
+        #deleting an account
+        ...
     
 class LogOutView(APIView):
     ...
