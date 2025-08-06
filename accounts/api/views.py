@@ -4,11 +4,6 @@ from rest_framework import status
 from .serializers import RegisterSerializer
 
 class RegisterView(APIView):
-    # def get(self, request, pk):
-    #     user = 
-    #     serializer = RegisterSerializer(data=request.data)
-
-
     def post(self, request):
         #registering a user
         serializer = RegisterSerializer(data = request.data)
