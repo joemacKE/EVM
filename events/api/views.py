@@ -1,4 +1,5 @@
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework.authentication import (SessionAuthentication, BasicAuthentication)
 from rest_framework.views import APIView
 from events.api.serializers import EventSerializer
 from rest_framework.decorators import api_view
@@ -6,7 +7,7 @@ from rest_framework.response import Response
 from events.models import Event
 from rest_framework import status, viewsets
 from django.contrib.auth.mixins import LoginRequiredMixin
-import django_filters
+import django_filters.rest_framework 
 
 class EventFilter(django_filters.FilterSet):
     organizer = django_filters.CharFilter(field_name="organizer", lookup_expr="icontains")
@@ -20,58 +21,71 @@ class EventFilter(django_filters.FilterSet):
 class EventViewSet(viewsets.ModelViewSet):
     queryset = Event.objects.all()
     serializer_class = EventSerializer
+    authentication_classes = [SessionAuthentication, BasicAuthentication]
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    filter_backends = [django_filters.rest_framework.DjangoFilterBackend]
     filterset_class = EventFilter
 
+    def perform_create(self, serializer):
+        serializer.save(organizer =self.request.user)
 
 
-class EventListAPIView(APIView):
-    #retrieving list of events listed
-    def get(self, request):
-        events = Event.objects.all()
-        serializer = EventSerializer(events, many=True)
-        return Response(serializer.data)
 
-class EventDetailAPIView(APIView):
-    #class EventDetailMixin(LoginRequiredMixin, View):
-        #login_url = "accounts/api/login"
-        #redirect_name = "redirect_to"
 
-    #retrieves a single event by ID
-    def get(self, request, pk):
-        try:
-            event = Event.objects.get(pk=pk)
-        except Event.DoesNotExist:
-            return Response({'error': 'Event Not Found'}, status=status.HTTP_404_NOT_FOUND)
-        serializer = EventSerializer(event)
-        return Response(serializer.data)
+# class EventListAPIView(APIView):
+#     #retrieving list of events listed
+#     def get(self, request):
+#         events = Event.objects.all()
+#         serializer = EventSerializer(events, many=True)
+#         return Response(serializer.data)
+
+# class EventDetailAPIView(APIView):
+#     authentication_classes = [SessionAuthentication, BasicAuthentication]
+#     permission_classes = [IsAuthenticated]
+
     
-    def post(self, request, pk):
-        #creating and posting an event
-        serializer = EventSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors)
+#     #class EventDetailMixin(LoginRequiredMixin, View):
+#         #login_url = "accounts/api/login"
+#         #redirect_name = "redirect_to"
+
+#     #retrieves a single event by ID
+#     def get(self, request, pk):
+
+#         try:
+#             event = Event.objects.get(pk=pk)
+#         except Event.DoesNotExist:
+#             return Response({'error': 'Event Not Found'}, status=status.HTTP_404_NOT_FOUND)
+#         serializer = EventSerializer(event)
+#         return Response(serializer.data)
     
-    def put(self, request, pk):
-        #retreiving and updating a singl event by an ID
-        try:
-            event = Event.objects.get(pk=pk)
-        except Event.DoesNotExist:
-            return Response({'error': 'Event Not Found'}, status = status.HTTP_404_NOT_FOUND)
-        serializer = EventSerializer(event, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-        return Response(serializer.data)
+#     def post(self, request, pk):
+#         #creating and posting an event
+#         serializer = EventSerializer(data=request.data)
+#         if serializer.is_valid():
+#             serializer.save()
+#             return Response(serializer.data)
+#         return Response(serializer.errors)
     
-    def delete(self, request, pk):
-        #deleting a single event by ID
-        try:
-            event = Event.objects.get(pk=pk)
-        except Event.DoesNotExist:
-            return Response({"error": "Event Not Found"}, status=status.HTTP_404_NOT_FOUND)
-        event.delete()
-        return Response("Event is deleted succesfully", status = status.HTTP_200_OK)
+#     def put(self, request, pk):
+#         #retreiving and updating a singl event by an ID
+#         try:
+#             event = Event.objects.get(pk=pk)
+#         except Event.DoesNotExist:
+#             return Response({'error': 'Event Not Found'}, status = status.HTTP_404_NOT_FOUND)
+#         serializer = EventSerializer(event, data=request.data)
+#         if serializer.is_valid():
+#             serializer.save()
+#         return Response(serializer.data)
+    
+#     def delete(self, request, pk):
+#         #deleting a single event by ID
+#         try:
+#             event = Event.objects.get(pk=pk)
+#         except Event.DoesNotExist:
+#             return Response({"error": "Event Not Found"}, status=status.HTTP_404_NOT_FOUND)
+#         event.delete()
+#         return Response("Event is deleted succesfully", status = status.HTTP_200_OK)
 
 
 

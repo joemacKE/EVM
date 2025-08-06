@@ -37,17 +37,10 @@ class CustomUserManager(BaseUserManager):
 
 
 class CustomUser(AbstractUser):
-    SALUTATION = [
-        ('mr', 'Mr'),
-        ('miss', 'Miss'),
-        ('mrs', 'Mrs'),
-    ]
     first_name = models.CharField(max_length=120)
     last_name = models.CharField(max_length=120)
     email = models.EmailField(unique=True)
     username = models.CharField(max_length=120)
-    salutation = models.CharField(max_length=50, choices=SALUTATION)
-    dob = models.DateTimeField()
     is_active = models.BooleanField(default=True)
     created_at = models.DateField(auto_now_add=True)
     phone_number = models.CharField(max_length=10)
@@ -64,7 +57,7 @@ class CustomUser(AbstractUser):
 
 
     def __str__(self):
-        return f"Hello {self.salutation} {self.first_name} {self.last_name}"
+        return f"Hello: {self.first_name} {self.last_name}"
 
 
 
