@@ -67,6 +67,12 @@ WSGI_APPLICATION = 'EMS.wsgi.application'
 REST_FRAMEWORK = {
     "DEFAULT_FILTER_BACKEND": ('django_filters.rest_framework.DjangoFilterBackend', )
 }
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': 'rest_framework.permissions.AllowAny',
+}
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases

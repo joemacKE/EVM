@@ -17,6 +17,11 @@ class EventFilter(django_filters.FilterSet):
         model = Event
         fields = ['organizer', 'category', 'status']
 
+class EventViewSet(viewsets.ModelViewSet):
+    queryset = Event.objects.all()
+    serializer_class = EventSerializer
+    filterset_class = EventFilter
+
 
 
 class EventListAPIView(APIView):
