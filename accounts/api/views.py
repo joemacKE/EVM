@@ -18,6 +18,7 @@ class RegisterView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
     def put(self, request):
+        
         #updating user profile
         ...
 

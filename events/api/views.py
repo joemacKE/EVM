@@ -5,6 +5,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from events.models import Event
 from rest_framework import status
+from django.contrib.auth.mixins import LoginRequiredMixin
 
 class EventListAPIView(APIView):
     #retrieving list of events listed
@@ -14,6 +15,10 @@ class EventListAPIView(APIView):
         return Response(serializer.data)
 
 class EventDetailAPIView(APIView):
+    #class EventDetailMixin(LoginRequiredMixin, View):
+        #login_url = "accounts/api/login"
+        #redirect_name = "redirect_to"
+
     #retrieves a single event by ID
     def get(self, request, pk):
         try:
