@@ -1,12 +1,9 @@
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
 from rest_framework.authentication import (SessionAuthentication, BasicAuthentication)
-from rest_framework.views import APIView
 from events.api.serializers import EventSerializer
-from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from events.models import Event
 from rest_framework import status, viewsets
-from django.contrib.auth.mixins import LoginRequiredMixin
 import django_filters.rest_framework 
 
 class EventFilter(django_filters.FilterSet):
@@ -29,6 +26,9 @@ class EventViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(organizer =self.request.user)
+
+    
+
 
 
 

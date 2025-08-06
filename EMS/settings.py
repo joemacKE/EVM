@@ -62,7 +62,8 @@ TEMPLATES = [
     },
 ]
 
-
+LOGIN_REDIRECT_URL = 'api/events/profile/'
+LOGOUT_REDIRECT_URL = 'api-auth/login/'
 WSGI_APPLICATION = 'EMS.wsgi.application'
 REST_FRAMEWORK = {
     "DEFAULT_FILTER_BACKEND": ('django_filters.rest_framework.DjangoFilterBackend', )
