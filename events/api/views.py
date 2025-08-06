@@ -4,8 +4,27 @@ from events.api.serializers import EventSerializer
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from events.models import Event
-from rest_framework import status
+from rest_framework import status, viewsets
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django_filters import filters
+
+class EventFilter(filters.FilterSet):
+
+    class Meta:
+        model = Event
+        fields = {
+            'organizer': ['icontains'],
+            "category": ['upcoming', 'ongoing', 'cancelled', 'completed'],
+            'status': ['conference', 'webinar', 'meet_and_greet', 'hackathon', 'coding_bootcamp', 'movie_night', 'RnB Night',
+                       'Pack and Chill', 'Pack and Grill']
+        }
+
+class EventViewSet(viewsets.ModelViewSet):
+    queryset = Event.objects.all()
+    serializer_class = EventSerializer
+    filterset_class = EventFilter
+
+
 
 class EventListAPIView(APIView):
     #retrieving list of events listed
