@@ -6,23 +6,16 @@ from rest_framework.response import Response
 from events.models import Event
 from rest_framework import status, viewsets
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django_filters import filters
+import django_filters
 
-class EventFilter(filters.FilterSet):
-
+class EventFilter(django_filters.FilterSet):
+    organizer = django_filters.CharFilter(field_name="organizer", lookup_expr="icontains")
+    category = django_filters.CharFilter(field_name="category", lookup_expr="exact")
+    status = django_filters.CharFilter(field_name="status", lookup_expr="exact")
+    
     class Meta:
         model = Event
-        fields = {
-            'organizer': ['icontains'],
-            "category": ['upcoming', 'ongoing', 'cancelled', 'completed'],
-            'status': ['conference', 'webinar', 'meet_and_greet', 'hackathon', 'coding_bootcamp', 'movie_night', 'RnB Night',
-                       'Pack and Chill', 'Pack and Grill']
-        }
-
-class EventViewSet(viewsets.ModelViewSet):
-    queryset = Event.objects.all()
-    serializer_class = EventSerializer
-    filterset_class = EventFilter
+        fields = ['organizer', 'category', 'status']
 
 
 
