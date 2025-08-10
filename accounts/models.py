@@ -9,11 +9,12 @@ class CustomUserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
         if not email:
             raise ValueError("You must provide valid email (example@gmail.com)")
+        
+        extra_fields.setdefault('username', email)
 
-        user = self.model(
-            email = self.normalize_email(email),
-            password = password
-            )
+
+        extra_fields.setdefault('username', email)  
+        user = self.model(email=self.normalize_email(email), **extra_fields)
         user.set_password(password)
         user.save(using=self._db)
         return user
@@ -57,7 +58,7 @@ class CustomUser(AbstractUser):
 
 
     def __str__(self):
-        return f"Hello: {self.first_name} {self.last_name}"
+        return f"{self.first_name} ' | ' {self.last_name}"
 
 
 
