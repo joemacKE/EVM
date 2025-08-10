@@ -24,15 +24,15 @@ from django.conf import settings
 
 class EventSerializer(serializers.ModelSerializer):
     #some basic validation
-    def validate(self, data):
-        #checks if start_date comes before end_date
-        if data['start_date'] > data['end_date']:
-            raise serializers.ValidationError("The finish date cannot occur before the event is yet to start")
+    # def validate(self, data):
+    #     #checks if start_date comes before end_date
+    #     if data['start_date'] > data['end_date']:
+    #         raise serializers.ValidationError("The finish date cannot occur before the event is yet to start")
 
 
-        if data['start_time'] > data['end_time']:
-            raise serializers.ValidationError("The event cannot be finished before it started")
-        return data
+    #     if data['start_time'] > data['end_time']:
+    #         raise serializers.ValidationError("The event cannot be finished before it started")
+    #     return data
     
     class Meta:
         model = Event
