@@ -33,9 +33,7 @@ class EventListAPIView(APIView):
         # Return the serialized data
         serializer = EventSerializer(events, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
-        events = Event.objects.all()
-        serializer = EventSerializer(events, many=True)
-        return Response(serializer.data)
+
 
     def post(self, request):
         serializer = EventSerializer(data=request.data)
