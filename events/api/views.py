@@ -6,6 +6,7 @@ from events.models import Event
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.permissions import BasePermission
+from django.utils import timezone
 
 # import django_filters.rest_framework 
 
@@ -19,22 +20,33 @@ class EventListAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        events = Event.objects.all()
+        # retrieves all events
+        try:
+            events = Event.objects.all()
+        except Event.DoesNotExist:
+            return Response({'error': 'No events found'}, status=status.HTTP_404_NOT_FOUND)
+        
+        # Serialize the events
+        if not events:
+            return Response({'message': 'No events available'}, status=status.HTTP_200_OK)
+        
+        # Return the serialized data
         serializer = EventSerializer(events, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+        events = Event.objects.all()
+        serializer = EventSerializer(events, many=True)
+        return Response(serializer.data)
 
     def post(self, request):
-        data = request.data.copy()
-        # If organizer is required and should be the logged-in user:
         serializer = EventSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save(organizer=request.user)  # <-- set organizer here
+            serializer.save(organizer=request.user)  # Set organizer here!
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class EventDetailAPIView(APIView):
     authentication_classes = [SessionAuthentication, BasicAuthentication]
-    permission_classes = [IsAuthenticated, IsOrganizerOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     #retrieves a single event by ID
     def get(self, request, pk):
