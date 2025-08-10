@@ -2,6 +2,9 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from .serializers import RegisterSerializer
+from rest_framework.permissions import IsAuthenticated
+from rest_framework_simplejwt.tokens import RefreshToken
+
 
 class RegisterView(APIView):
     def post(self, request):
@@ -22,4 +25,14 @@ class RegisterView(APIView):
         ...
     
 class LogOutView(APIView):
-    ...
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        #logging out a user and blacklisting the token
+        try:
+            refresh_token = request.data.get('refresh_token')
+            token = RefreshToken(refresh_token)
+            token.blacklist()
+            return Response({"message": "You have been logged out successfully"}, status=status.HTTP_205_RESET_CONTENT)
+        except Exception as e:
+            return Response({"error": "Invalid token"}, status=status.HTTP_400_BAD_REQUEST)
