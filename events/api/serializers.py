@@ -1,38 +1,38 @@
 from rest_framework import serializers
 from events.models import Event
 from django.conf import settings
+from django.utils import timezone
 
-# TYPE_OF_EVENT = [
-#         ('select', 'Select an Event'),
-#         ('conference', 'Conference'),
-#         ('webinar', 'Webinar'),
-#         ('meet_and_greet', 'Meet and Greet'),
-#         ('hackathon', 'Hackathon'),
-#         ('coding_bootcamp', 'Coding BootCamp'),
-#         ('movie_night', 'Movie Night'),
-#         ('r_n_b_night', 'RnB Night'),
-#         ('pack_and_chill', 'Pack and Chill'),
-#         ('pack_and_grill', 'Pack and Grill'),
-#         ('others', 'Others'),
-#     ]
-# STATUS_CHOICES = [
-#         ('upcoming', 'Upcoming'),
-#         ('ongoing', 'ongoing'),
-#         ('cancelled', 'Cancelled'),
-#         ('completed', 'Completed')
-#     ]
+
 
 class EventSerializer(serializers.ModelSerializer):
-    #some basic validation
-    # def validate(self, data):
-    #     #checks if start_date comes before end_date
-    #     if data['start_date'] > data['end_date']:
-    #         raise serializers.ValidationError("The finish date cannot occur before the event is yet to start")
 
+    def validate_start_date(self, value):
+        #checks if start_date comes before end_date
+        if value < timezone.now().date():
+            raise serializers.ValidationError("The event cannot start in the past")
+        return value
 
-    #     if data['start_time'] > data['end_time']:
-    #         raise serializers.ValidationError("The event cannot be finished before it started")
-    #     return data
+    def validate(self, data):
+        #checks if start_date is before end_date
+        if data['end_date'] <= data['start_date']:
+            raise serializers.ValidationError("End date must be after start date")
+        return data
+    
+    def validate_capacity(self, value):
+        #checks if capacity is greater than 10
+        if value < 10:
+            raise serializers.ValidationError("You must have a minimum of 10 people for an event")
+        return value
+    
+    def validate_category(self, value):
+        #checks if category is selected
+        try:
+            if value == 'select':
+                raise serializers.ValidationError("Please select a valid event category")
+        except KeyError:
+            raise serializers.ValidationError("Invalid Category selected")
+        return value
     
     class Meta:
         model = Event
@@ -41,7 +41,7 @@ class EventSerializer(serializers.ModelSerializer):
 
     
     def create(self, validate_data):
-        return Event(**validate_data)
+        return Event.objects.create(**validate_data)
     
     # name = serializers.CharField()
     # description = serializers.CharField()
@@ -83,3 +83,22 @@ class EventSerializer(serializers.ModelSerializer):
         instance.save()
         return instance
 
+# TYPE_OF_EVENT = [
+#         ('select', 'Select an Event'),
+#         ('conference', 'Conference'),
+#         ('webinar', 'Webinar'),
+#         ('meet_and_greet', 'Meet and Greet'),
+#         ('hackathon', 'Hackathon'),
+#         ('coding_bootcamp', 'Coding BootCamp'),
+#         ('movie_night', 'Movie Night'),
+#         ('r_n_b_night', 'RnB Night'),
+#         ('pack_and_chill', 'Pack and Chill'),
+#         ('pack_and_grill', 'Pack and Grill'),
+#         ('others', 'Others'),
+#     ]
+# STATUS_CHOICES = [
+#         ('upcoming', 'Upcoming'),
+#         ('ongoing', 'ongoing'),
+#         ('cancelled', 'Cancelled'),
+#         ('completed', 'Completed')
+#     ]

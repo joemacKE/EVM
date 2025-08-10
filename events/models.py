@@ -32,6 +32,7 @@ class Event(models.Model):
     end_time = models.TimeField()
     capacity = models.PositiveIntegerField()
     status = models.CharField(max_length=120, choices=STATUS_CHOICES)
+    # price = models.PositiveIntegerField(default=0)
     image = models.ImageField(upload_to='images/', null=True, blank=True)
     is_public = models.BooleanField(default=False)
     location = models.CharField(max_length=200)
