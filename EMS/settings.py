@@ -31,7 +31,8 @@ INSTALLED_APPS = [
 
     #rest_framework
     'rest_framework',
-    'django_filters'
+    'django_filters',
+
 
 ]
 
@@ -62,7 +63,7 @@ TEMPLATES = [
     },
 ]
 
-LOGIN_REDIRECT_URL = 'api/events/profile/'
+
 LOGOUT_REDIRECT_URL = 'api-auth/login/'
 WSGI_APPLICATION = 'EMS.wsgi.application'
 REST_FRAMEWORK = {
@@ -76,6 +77,9 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.AllowAny',
         'rest_framework.permissions.IsAuthenticatedOrReadOnly',
         ],
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
 
 }
 
