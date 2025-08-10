@@ -26,14 +26,9 @@ class EventListAPIView(APIView):
     def post(self, request):
         data = request.data.copy()
         # If organizer is required and should be the logged-in user:
-        try:
-            if request.user.is_authenticated:
-                data['organizer'] = request.user.id
-        except AttributeError:
-            return Response({"error": "User not authenticated"}, status=status.HTTP_401_UNAUTHORIZED)
-        serializer = EventSerializer(data=data)
+        serializer = EventSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save()
+            serializer.save(organizer=request.user)  # <-- set organizer here
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
