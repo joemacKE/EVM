@@ -25,6 +25,17 @@ class EventSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("You must have a minimum of 10 people for an event")
         return value
     
+    def validate_is_paid(self, value):
+    # checks if is_paid is True, then price must be greater than 0
+        price = self.initial_data.get('price', 0)
+        try:
+            price = float(price)
+        except (TypeError, ValueError):
+            price = 0
+        if value and price <= 0:
+            raise serializers.ValidationError("If the event is paid, the price must be greater than 0")
+        return value
+    
     def validate_category(self, value):
         #checks if category is selected
         try:

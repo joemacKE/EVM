@@ -35,8 +35,6 @@ class CustomUserManager(BaseUserManager):
         return user
 
 
-
-
 class CustomUser(AbstractUser):
     first_name = models.CharField(max_length=120)
     last_name = models.CharField(max_length=120)
@@ -58,7 +56,7 @@ class CustomUser(AbstractUser):
 
 
     def __str__(self):
-        return f"{self.first_name} ' | ' {self.last_name}"
+        return f"{self.first_name} {self.last_name}"
 
 
 
