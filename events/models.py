@@ -2,9 +2,7 @@ from django.db import models
 from django.conf import settings
 from django.core.validators import MinValueValidator
 
-class BookEvent(models.Model):
-    ... 
-    #this model will define the relationship between events and users who book them
+
 
 
 
@@ -64,4 +62,36 @@ class Comment(models.Model):
         return f"{self.author} commented on {self.event}: {self.comment[:20]}"
     #this model will define the relationship between events and users who comment on them
 
-# Create your models here.
+
+class BookEvent(models.Model):
+    BOOKING_STATUS = [
+        ('confirmed', 'Confirmed'),
+        ('pending', 'Pending'),
+        ('cancelled', 'Cancelled')
+    ]
+    PAYMENT_STATUS = [
+        ('unpaid', 'Unpaid'),
+        ('paid', 'Paid'),
+        ('refunded', 'Refunded')
+    ]
+
+    event = models.ForeignKey('Event', on_delete=models.CASCADE, related_name='booking')
+    total_price = models.DecimalField(max_digits=10, decimal_places=2, default=0.00,)
+    user = models.OneToOneField(settings.AUTH_USER_MODELS, on_delete=models.CASCADE)
+    booking_status = models.CharField(max_length=100, choices = BOOKING_STATUS)
+    number_of_tickets = models.PositiveIntegerField(default=1)
+    payment_status = models.DecimalField(max_digits=10, decimal_places=2, default=0.00, choices=PAYMENT_STATUS)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+
+    def save(self, *args, **kwargs):
+        if self.event.is_paid:
+            self.total_price = self.number_of_tickets * self.event.price
+        else:
+            self.total_price = 0.00
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.booking_status
+    #this model will define the relationship between events and users who book them
