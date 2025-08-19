@@ -34,7 +34,6 @@ class CustomUserManager(BaseUserManager):
         user.save(using=self._db)
         return user
 
-
 class CustomUser(AbstractUser):
     first_name = models.CharField(max_length=120)
     last_name = models.CharField(max_length=120)
@@ -47,7 +46,6 @@ class CustomUser(AbstractUser):
     bio = models.TextField()
 
 
-
     USERNAME_FIELD = 'email'
 
     REQUIRED_FIELDS = []
@@ -58,6 +56,16 @@ class CustomUser(AbstractUser):
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
 
+# class Profile(models.Model):
+#     first_name = models.CharField(max_length=120)
+#     last_name = models.CharField(max_length=120)
+#     email = models.EmailField(unique=True)
+#     username = models.CharField(max_length=120)
+#     is_active = models.BooleanField(default=True)
+#     created_at = models.DateField(auto_now_add=True)
+#     phone_number = models.CharField(max_length=10)
+#     profile_pic = models.ImageField(upload_to='profile/', blank=True) #must check this later
+#     bio = models.TextField()
 
 
 

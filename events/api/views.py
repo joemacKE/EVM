@@ -1,8 +1,8 @@
 from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
 from rest_framework.authentication import (SessionAuthentication, BasicAuthentication)
-from events.api.serializers import EventSerializer
+from events.api.serializers import EventSerializer, CommentSerializer
 from rest_framework.response import Response
-from events.models import Event
+from events.models import Event, Comment
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.permissions import BasePermission
@@ -15,9 +15,10 @@ class IsOrganizerOrReadOnly(BasePermission):
     def has_object_permission(self, request, view, obj):
         return obj.organizer == request.user
 
+
 class EventListAPIView(APIView):
     authentication_classes = [SessionAuthentication, BasicAuthentication]
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get(self, request):
         # retrieves all events
@@ -38,7 +39,7 @@ class EventListAPIView(APIView):
     def post(self, request):
         serializer = EventSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save(organizer=request.user)  # Set organizer here!
+            serializer.save(organizer=request.user)  # Set organizer here
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -84,7 +85,45 @@ class EventDetailAPIView(APIView):
         event.delete()
         return Response("Event is deleted succesfully", status = status.HTTP_200_OK)
 
+class CommentListAPIView(APIView):
+    authentication_classes = [SessionAuthentication, BasicAuthentication]
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
+    def get(self, request, event_id):
+        try:
+            event = Event.objects.get(pk=event_id)
+        except Event.DoesNotExist:
+            return Response({'error': 'No event by that ID found'}, status=status.HTTP_404_NOT_FOUND)
+        comments = Comment.objects.filter(event_id = event_id) 
+        serializer = CommentSerializer(comments, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+
+class CommentDetailAPIView(APIView):
+    authentication_classes = [SessionAuthentication, BasicAuthentication]
+    permission_classes = [IsAuthenticated]
+    def get(self, request, event_id):
+        try:
+            event = Event.objects.get(pk=event_id)
+        except Event.DoesNotExist:
+            return Response({'error': 'No event by that ID found'}, status=status.HTTP_404_NOT_FOUND)
+        comments = Comment.objects.filter(event_id = event_id) 
+        serializer = CommentSerializer(comments, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+
+    def post(self, request, event_id):
+        try:
+            event = Event.objects.get(pk=event_id)
+        except Event.DoesNotExist:
+            return Response({'error': 'Event not found!'}, status=status.HTTP_404_NOT_FOUND)
+        serializer = CommentSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(event=event, author=request.user) #this line attaches event and author automatically
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        
 
 
 # @api_view(['GET', 'POST'])

@@ -1,54 +1,79 @@
 from rest_framework import serializers
-from events.models import Event
+from events.models import Event, Comment
 from django.conf import settings
 from django.utils import timezone
 
 
 
-class EventSerializer(serializers.ModelSerializer):
-
-    def validate_start_date(self, value):
-        #checks if start_date comes before end_date
-        if value < timezone.now().date():
-            raise serializers.ValidationError("The event cannot start in the past")
-        return value
-
-    def validate(self, data):
-        #checks if start_date is before end_date
-        if data['end_date'] <= data['start_date']:
-            raise serializers.ValidationError("End date must be after start date")
-        return data
-    
-    def validate_capacity(self, value):
-        #checks if capacity is greater than 10
-        if value < 10:
-            raise serializers.ValidationError("You must have a minimum of 10 people for an event")
-        return value
-    
-    def validate_is_paid(self, value):
-    # checks if is_paid is True, then price must be greater than 0
-        price = self.initial_data.get('price', 0)
-        try:
-            price = float(price)
-        except (TypeError, ValueError):
-            price = 0
-        if value and price <= 0:
-            raise serializers.ValidationError("If the event is paid, the price must be greater than 0")
-        return value
-    
-    def validate_category(self, value):
-        #checks if category is selected
-        try:
-            if value == 'select':
-                raise serializers.ValidationError("Please select a valid event category")
-        except KeyError:
-            raise serializers.ValidationError("Invalid Category selected")
-        return value
-    
+class CommentSerializer(serializers.ModelSerializer):
     class Meta:
+        model = Comment
+        fields = "__all__"
+
+class EventSerializer(serializers.ModelSerializer):
+     comments = CommentSerializer(many=True, read_only= True)
+     class Meta:
         model = Event
         fields = '__all__'
         read_only_fields = ['created_at', 'updated_at', 'organizer']
+
+
+        def validate_start_date(self, value):
+        #checks if start_date comes before end_date
+            if value < timezone.now().date():
+                raise serializers.ValidationError("The event cannot start in the past")
+            return value
+
+        def validate(self, data):
+            #checks if start_date is before end_date
+            if data['end_date'] <= data['start_date']:
+                raise serializers.ValidationError("End date must be after start date")
+            return data
+        
+        def validate_capacity(self, value):
+            #checks if capacity is greater than 10
+            if value < 10:
+                raise serializers.ValidationError("You must have a minimum of 10 people for an event")
+            return value
+        
+        def validate_is_paid(self, value):
+        # checks if is_paid is True, then price must be greater than 0
+            price = self.initial_data.get('price', 0)
+            try:
+                price = float(price)
+            except (TypeError, ValueError):
+                price = 0
+            if value and price <= 0:
+                raise serializers.ValidationError("If the event is paid, the price must be greater than 0")
+            return value
+        
+        def validate_category(self, value):
+            #checks if category is selected
+            try:
+                if value == 'select':
+                    raise serializers.ValidationError("Please select a valid event category")
+            except KeyError:
+                raise serializers.ValidationError("Invalid Category selected")
+            return value
+        
+        def update(self, instance, validated_data):
+            #overiding the update method to handle updates
+            instance = super().update(instance, validated_data)
+            return instance
+    
+    # def validate_organizer(self, value):
+    #     if value != self.context['request'].user:
+    #         raise serializers.ValidationError("You cannot create an event for another user")
+    #     return value
+
+    
+   
+class CommentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Comment
+        fileds = ['id', 'comment', 'created_at']
+        read_only_fields = ['created_at', 'updated_at']
+        exclude = ['updated_at', 'id']
 
     
     def create(self, validate_data):
@@ -94,22 +119,3 @@ class EventSerializer(serializers.ModelSerializer):
         instance.save()
         return instance
 
-# TYPE_OF_EVENT = [
-#         ('select', 'Select an Event'),
-#         ('conference', 'Conference'),
-#         ('webinar', 'Webinar'),
-#         ('meet_and_greet', 'Meet and Greet'),
-#         ('hackathon', 'Hackathon'),
-#         ('coding_bootcamp', 'Coding BootCamp'),
-#         ('movie_night', 'Movie Night'),
-#         ('r_n_b_night', 'RnB Night'),
-#         ('pack_and_chill', 'Pack and Chill'),
-#         ('pack_and_grill', 'Pack and Grill'),
-#         ('others', 'Others'),
-#     ]
-# STATUS_CHOICES = [
-#         ('upcoming', 'Upcoming'),
-#         ('ongoing', 'ongoing'),
-#         ('cancelled', 'Cancelled'),
-#         ('completed', 'Completed')
-#     ]
