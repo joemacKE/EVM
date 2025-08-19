@@ -3,9 +3,6 @@ from django.conf import settings
 from django.core.validators import MinValueValidator
 
 
-
-
-
 class Notification(models.Model):
     ...
     #this model will define the relationship between events and users who recieve notifications about them
@@ -52,7 +49,7 @@ class Event(models.Model):
         return f"Event: {self.name} Description: {self.description} Start Date: {self.start_date} Start Time: {self.start_time} Location: {self.location}"
 
 class Comment(models.Model):
-    event = models.ForeignKey('Event', on_delete=models.CASCADE, related_name = 'comments')
+    event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name = 'comments')
     author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name = 'author')
     comment = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
@@ -75,9 +72,9 @@ class BookEvent(models.Model):
         ('refunded', 'Refunded')
     ]
 
-    event = models.ForeignKey('Event', on_delete=models.CASCADE, related_name='booking')
+    event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='booking')
     total_price = models.DecimalField(max_digits=10, decimal_places=2, default=0.00,)
-    user = models.OneToOneField(settings.AUTH_USER_MODELS, on_delete=models.CASCADE)
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='book_event')
     booking_status = models.CharField(max_length=100, choices = BOOKING_STATUS)
     number_of_tickets = models.PositiveIntegerField(default=1)
     payment_status = models.DecimalField(max_digits=10, decimal_places=2, default=0.00, choices=PAYMENT_STATUS)
