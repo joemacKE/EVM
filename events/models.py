@@ -91,6 +91,3 @@ class Comment(models.Model):
     #this model will define the relationship between events and users who book them
 
 
-class Notification(models.Model):
-    ...
-    #this model will define the relationship between events and users who recieve notifications about them

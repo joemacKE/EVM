@@ -1,5 +1,5 @@
 from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
-from rest_framework.authentication import (SessionAuthentication, BasicAuthentication)
+from rest_framework.authentication import (SessionAuthentication, BasicAuthentication, TokenAuthentication)
 from events.api.serializers import EventSerializer, CommentSerializer
 from rest_framework.response import Response
 from events.models import Event, Comment
@@ -17,7 +17,7 @@ class IsOrganizerOrReadOnly(BasePermission):
 
 
 class EventListAPIView(APIView):
-    authentication_classes = [SessionAuthentication, BasicAuthentication]
+    authentication_classes = [SessionAuthentication, BasicAuthentication, TokenAuthentication]
     permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get(self, request):
@@ -44,7 +44,7 @@ class EventListAPIView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class EventDetailAPIView(APIView):
-    authentication_classes = [SessionAuthentication, BasicAuthentication]
+    authentication_classes = [SessionAuthentication, BasicAuthentication, TokenAuthentication]
     permission_classes = [IsAuthenticated]
 
     #retrieves a single event by ID
@@ -86,7 +86,7 @@ class EventDetailAPIView(APIView):
         return Response("Event is deleted succesfully", status = status.HTTP_200_OK)
 
 class CommentListAPIView(APIView):
-    authentication_classes = [SessionAuthentication, BasicAuthentication]
+    authentication_classes = [SessionAuthentication, BasicAuthentication, TokenAuthentication]
     permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get(self, request, event_id):
@@ -100,7 +100,7 @@ class CommentListAPIView(APIView):
     
 
 class CommentDetailAPIView(APIView):
-    authentication_classes = [SessionAuthentication, BasicAuthentication]
+    authentication_classes = [SessionAuthentication, BasicAuthentication, TokenAuthentication]
     permission_classes = [IsAuthenticated]
     def get(self, request, event_id):
         try:
