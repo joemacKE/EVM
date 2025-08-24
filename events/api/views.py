@@ -10,21 +10,30 @@ from rest_framework.permissions import BasePermission
 from django_filters import rest_framework as filters
 from rest_framework import generics, permissions
 from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.pagination import PageNumberPagination
 
 
 # import django_filters.rest_framework 
+
 
 
 class IsOrganizerOrReadOnly(BasePermission):
     def has_object_permission(self, request, view, obj):
         return obj.organizer == request.user
 
+class CustomPageNumberPagination(PageNumberPagination):
+    page_size = 5
+    page_size_query_param = 'page_size'
+    max_page_size = 10
+
+
 class EventFilterList(generics.ListAPIView):
     queryset = Event.objects.all()
     serializer_class = EventSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['status']
-    permission_classes = [AllowAny]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    pagination_class = CustomPageNumberPagination
     
     
 
@@ -36,6 +45,7 @@ class EventFilter(filters.FilterSet):
 class EventListAPIView(APIView):
     authentication_classes = [SessionAuthentication, BasicAuthentication, TokenAuthentication]
     permission_classes = [IsAuthenticatedOrReadOnly]
+    pagination_class = CustomPageNumberPagination
 
     def get(self, request):
         # retrieves all events
@@ -52,8 +62,11 @@ class EventListAPIView(APIView):
         if not queryset:
             return Response({'message': 'No events available'}, status=status.HTTP_200_OK)
         
+        
         # Return the serialized data
-        serializer = EventSerializer(queryset, many=True)
+        paginator = CustomPageNumberPagination()
+        result_page = paginator.paginate_queryset(queryset, request)
+        serializer = EventSerializer(result_page, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 

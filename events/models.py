@@ -9,12 +9,16 @@ class Event(models.Model):
         ('conference', 'Conference'),
         ('webinar', 'Webinar'),
         ('meet_and_greet', 'Meet and Greet'),
-        ('hackathon', 'Hackathon'),
+        ('hackerthon', 'Hackerthon'),
         ('coding_bootcamp', 'Coding BootCamp'),
         ('movie_night', 'Movie Night'),
         ('r_n_b_night', 'RnB Night'),
         ('pack_and_chill', 'Pack and Chill'),
         ('pack_and_grill', 'Pack and Grill'),
+        ('festival', 'Festival'),
+        ('exhibition', 'Exhibition'),
+        ('sports', 'Sports'),
+        ('workshop', 'Workshop'),
         ('others', 'Others'),
     ]
     STATUS_CHOICES = [
