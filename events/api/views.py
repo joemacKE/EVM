@@ -31,7 +31,7 @@ class EventFilterList(generics.ListAPIView):
     queryset = Event.objects.all()
     serializer_class = EventSerializer
     filter_backends = [DjangoFilterBackend]
-    filterset_fields = ['status']
+    filterset_fields = ['status', 'organizer', 'location']
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     pagination_class = CustomPageNumberPagination
     
