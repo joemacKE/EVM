@@ -1,12 +1,16 @@
-from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
+from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated, AllowAny
 from rest_framework.authentication import (SessionAuthentication, BasicAuthentication, TokenAuthentication)
 from events.api.serializers import EventSerializer, CommentSerializer
 from rest_framework.response import Response
-from events.models import Event, Comment
+from events.models import Event, Comment, Like
+from notifications.models import Notification
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.permissions import BasePermission
-from django.utils import timezone
+from django_filters import rest_framework as filters
+from rest_framework import generics, permissions
+from django_filters.rest_framework import DjangoFilterBackend
+
 
 # import django_filters.rest_framework 
 
@@ -15,6 +19,19 @@ class IsOrganizerOrReadOnly(BasePermission):
     def has_object_permission(self, request, view, obj):
         return obj.organizer == request.user
 
+class EventFilterList(generics.ListAPIView):
+    queryset = Event.objects.all()
+    serializer_class = EventSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['status']
+    permission_classes = [AllowAny]
+    
+    
+
+class EventFilter(filters.FilterSet):
+    class Meta:
+        model = Event
+        fields = ['status']
 
 class EventListAPIView(APIView):
     authentication_classes = [SessionAuthentication, BasicAuthentication, TokenAuthentication]
@@ -23,16 +40,20 @@ class EventListAPIView(APIView):
     def get(self, request):
         # retrieves all events
         try:
-            events = Event.objects.all()
+
+            queryset = Event.objects.all()
+            filterset = EventFilter(request.GET, queryset=queryset)
         except Event.DoesNotExist:
             return Response({'error': 'No events found'}, status=status.HTTP_404_NOT_FOUND)
+        if filterset.is_valid():
+            queryset = filterset.qs
         
         # Serialize the events
-        if not events:
+        if not queryset:
             return Response({'message': 'No events available'}, status=status.HTTP_200_OK)
         
         # Return the serialized data
-        serializer = EventSerializer(events, many=True)
+        serializer = EventSerializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
@@ -123,7 +144,45 @@ class CommentDetailAPIView(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
+class LikePostAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [SessionAuthentication, BasicAuthentication, TokenAuthentication]
+    
+
+    def get(self, request, pk):
+        try:
+            event = generics.get_object_or_404(Event, pk=pk)
+        except Event.DoesNotExist:
+            return Response({'error':'The event could not be found'}, status=status.HTTP_404_NOT_FOUND)
         
+        like = Like.objects.get_or_create(user=request.user, event=event)
+
+        if event.organizer != request.user:
+            Notification.objects.create(
+                recipient = event.organizer,
+                actor = request.user,
+                verb = 'liked your event',
+                target = event
+            )
+        return Response({'message':'Event liked succesfully!'}, status=status.HTTP_201_CREATED)
+
+
+class UnlikePostAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [SessionAuthentication, BasicAuthentication, TokenAuthentication]
+
+    def post(self, request, event_id):
+        try:
+            event = generics.get_object_or_404(Event, pk=event_id)
+        except Event.DoesNotExist:
+            return Response({'error':'Event not found'}, status=status.HTTP_404_NOT_FOUND)
+        like = Like.objects.filter(user=request.user, event =event).first()
+
+        if not like:
+            return Response({'error': 'You have not liked this event yet'}, status=status.HTTP_400_BAD_REQUEST)
+        like.delete()
+        return Response({'message': 'Like deleted succesfully'})
 
 
 # @api_view(['GET', 'POST'])

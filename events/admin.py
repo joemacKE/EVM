@@ -1,6 +1,7 @@
 from django.contrib import admin
-from .models import Event, Comment, Notification
+from .models import Event, Comment, Like
 
+admin.site.register(Like)
 admin.site.register(Event)
 # @admin.register(BookEvent)
 # class BookEventAdmin(admin.ModelAdmin):

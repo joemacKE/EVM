@@ -8,10 +8,7 @@ from django.utils import timezone
 class CommentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Comment
-        fields = "__all__"
-
-
-
+        fields = ["comment", 'author', 'created_at']
 
 class EventSerializer(serializers.ModelSerializer):
      comments = CommentSerializer(many=True, read_only= True)
@@ -90,27 +87,6 @@ class CommentSerializer(serializers.ModelSerializer):
     
     def create(self, validate_data):
         return Event.objects.create(**validate_data)
-    
-    # name = serializers.CharField()
-    # description = serializers.CharField()
-    # start_date = serializers.DateField()
-    # end_date = serializers.DateField()
-    # start_time = serializers.TimeField()
-    # end_time = serializers.TimeField()
-    # is_public = serializers.BooleanField(default=False)
-    # capacity = serializers.IntegerField(min_value=10)
-    # category = serializers.CharField(choices=TYPE_OF_EVENT)
-    # status = serializers.CharField(choices=STATUS_CHOICES)
-    # image = serializers.ImageField(required=False)
-    # location = serializers.CharField()
-    # created_at = serializers.DateTimeField(read_only=True)
-    # updated_at = serializers.DateTimeField(read_only=True)
-
-    
-    #basically returns all the objects
-    # def get(self, validated_data):
-    #     return Event.objects.create(**validated_data)
-    
 
     #handles the updates
     def update(self, instance,  validated_data):

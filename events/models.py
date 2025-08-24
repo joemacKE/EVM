@@ -55,7 +55,11 @@ class Comment(models.Model):
         return f"{self.author} commented on {self.event}: {self.comment[:20]}"
     #this model will define the relationship between events and users who comment on them
 
+class Like(models.Model):
+    event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='likes')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='user')
 
+    
 # class BookEvent(models.Model):
 #     BOOKING_STATUS = [
 #         ('confirmed', 'Confirmed'),
