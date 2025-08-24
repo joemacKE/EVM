@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Event, Comment, Like
+from .models import Event, Comment, Like, BookEvent
 
 admin.site.register(Like)
 admin.site.register(Event)
@@ -11,4 +11,5 @@ admin.site.register(Event)
 class CommentAdmin(admin.ModelAdmin):
     list_display = ('id', 'author', 'event', 'comment', 'created_at', 'updated_at')
     search_fields = ('author__username', 'comment', 'event__title')
+admin.site.register(BookEvent)
 # Register your models here.

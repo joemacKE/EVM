@@ -1,6 +1,6 @@
 from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated, AllowAny
 from rest_framework.authentication import (SessionAuthentication, BasicAuthentication, TokenAuthentication)
-from events.api.serializers import EventSerializer, CommentSerializer
+from events.api.serializers import EventSerializer, CommentSerializer, BookSerializer
 from rest_framework.response import Response
 from events.models import Event, Comment, Like
 from notifications.models import Notification
@@ -13,10 +13,6 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.pagination import PageNumberPagination
 
 
-# import django_filters.rest_framework 
-
-
-
 class IsOrganizerOrReadOnly(BasePermission):
     def has_object_permission(self, request, view, obj):
         return obj.organizer == request.user
@@ -26,16 +22,13 @@ class CustomPageNumberPagination(PageNumberPagination):
     page_size_query_param = 'page_size'
     max_page_size = 10
 
-
 class EventFilterList(generics.ListAPIView):
     queryset = Event.objects.all()
     serializer_class = EventSerializer
     filter_backends = [DjangoFilterBackend]
-    filterset_fields = ['status', 'organizer', 'location']
+    filterset_fields = ['status', 'organizer', 'location', 'start_date', 'start_time']
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
-    pagination_class = CustomPageNumberPagination
-    
-    
+    pagination_class = CustomPageNumberPagination 
 
 class EventFilter(filters.FilterSet):
     class Meta:
@@ -132,7 +125,6 @@ class CommentListAPIView(APIView):
         serializer = CommentSerializer(comments, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
     
-
 class CommentDetailAPIView(APIView):
     authentication_classes = [SessionAuthentication, BasicAuthentication, TokenAuthentication]
     permission_classes = [IsAuthenticated]
@@ -157,7 +149,6 @@ class CommentDetailAPIView(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-
 class LikePostAPIView(APIView):
     permission_classes = [IsAuthenticated]
     authentication_classes = [SessionAuthentication, BasicAuthentication, TokenAuthentication]
@@ -180,7 +171,6 @@ class LikePostAPIView(APIView):
             )
         return Response({'message':'Event liked succesfully!'}, status=status.HTTP_201_CREATED)
 
-
 class UnlikePostAPIView(APIView):
     permission_classes = [IsAuthenticated]
     authentication_classes = [SessionAuthentication, BasicAuthentication, TokenAuthentication]
@@ -197,72 +187,22 @@ class UnlikePostAPIView(APIView):
         like.delete()
         return Response({'message': 'Like deleted succesfully'})
 
+class BookEventView(APIView):
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [BasicAuthentication, SessionAuthentication]
 
-# @api_view(['GET', 'POST'])
-# def event_list(request):
-#     if request.method == "GET":
-#         try:
-#             event = Event.objects.all()
-#         except Event.DoesNotExist:
-#             return Response({'error': 'Event does not exist'}, status=status.HTTP_404_NOT_FOUND)
-#         serializer = EventSerializer(event, many=True)
-#         return Response(serializer.data)
-    
-#     if request.method == "POST":
-#         serializer = EventSerializer(data=request.data)
-#         if serializer.is_valid():
-#             serializer.save()
-#             return Response(serializer.data)
-#         else:
-#             return Response(serializer.errors)
-
-# @api_view(['GET', 'PUT', 'DELETE'])       
-# def event_details(request, pk):
-#     if request.method == "GET":
-#         try:
-#             event = Event.objects.get(pk=pk)
-#         except Event.DoesNotExist:
-#             return Response({'error': 'Event Not Found'}, status=status.HTTP_404_NOT_FOUND)
-#         serializer = EventSerializer(event)
-#         return Response(serializer.data)
-    
-#     if request.method == "PUT":
-#         try:
-#             event = Event.objects.get(pk=pk)
-#         except Event.DoesNotExist:
-#             return Response({'error': 'Event Not Found'}, status = status.HTTP_404_NOT_FOUND)
-#         serializer = EventSerializer(event, data=request.data)
-#         if serializer.is_valid():
-#             serializer.save()
-#         return Response(serializer.data)
-    
-#     if request.method == "DELETE":
-#         try:
-#             event = Event.objects.get(pk=pk)
-#         except Event.DoesNotExist:
-#             return Response({"error": "Event Not Found"}, status=status.HTTP_404_NOT_FOUND)
-#         event.delete()
-#         return Response("Event is deleted succesfully", status = status.HTTP_200_OK)
+    def post(self, request, pk):
+        try:
+            event = Event.objects.get(pk=pk)
+        except Event.DoesNotExist:
+            return Response({'error': 'Event cannot be found'}, status=status.HTTP_404_NOT_FOUND)
+        serializer = BookSerializer(data=request.data)
+        if serializer.is_valid():
+            booking = serializer.save(user=request.user, event=event)
+            event.attendees.add(request.user)
+            return Response(BookSerializer(booking).data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 
-# class EventFilter(django_filters.FilterSet):
-#     organizer = django_filters.CharFilter(field_name="organizer", lookup_expr="icontains")
-#     category = django_filters.CharFilter(field_name="category", lookup_expr="exact")
-#     status = django_filters.CharFilter(field_name="status", lookup_expr="exact")
-    
-#     class Meta:
-#         model = Event
-#         fields = ['organizer', 'category', 'status']
 
-# class EventViewSet(viewsets.ModelViewSet):
-#     queryset = Event.objects.all()
-#     serializer_class = EventSerializer
-#     authentication_classes = [SessionAuthentication, BasicAuthentication]
-#     permission_classes = [IsAuthenticatedOrReadOnly]
-
-#     filter_backends = [django_filters.rest_framework.DjangoFilterBackend]
-#     filterset_class = EventFilter
-
-#     def perform_create(self, serializer):
-#         serializer.save(organizer =self.request.user)

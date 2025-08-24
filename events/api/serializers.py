@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from events.models import Event, Comment
+from events.models import Event, Comment, BookEvent
 from django.conf import settings
 from django.utils import timezone
 
@@ -61,22 +61,22 @@ class EventSerializer(serializers.ModelSerializer):
             instance = super().update(instance, validated_data)
             return instance
     
-    # def validate_organizer(self, value):
-    #     if value != self.context['request'].user:
-    #         raise serializers.ValidationError("You cannot create an event for another user")
-    #     return value
 
-# class BookSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = BookEvent
-#         fields = "__all__"
-#         read_only_fields = ['created_at', 'updated_at', 'payment_status' ]
+class BookSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BookEvent
+        fields = "__all__"
+        read_only_fields = ['created_at', 'updated_at', 'payment_status', 'total_price']
 
-#         def validate(self, data):
-#             #checks if their is still slot for booking
-#             if data['capacity']:
-#                 ...
-   
+        def validate(self, data):
+            event = data['event']
+            #checks if their is still slot for booking
+            tickets_requested = data.get('number_of_tickets', 1)
+            if event.attendees.count() + tickets_requested > event.capacity:
+                raise serializers.ValidationError('This event is fully booked')
+            return data
+                
+                
 class CommentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Comment

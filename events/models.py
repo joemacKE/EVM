@@ -28,6 +28,7 @@ class Event(models.Model):
         ('completed', 'Completed')
     ]
     organizer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='events')
+    attendees = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='attendees', blank=True)
     name = models.CharField(max_length=200)
     category = models.CharField(max_length=120, choices=TYPE_OF_EVENT)
     description = models.TextField()
@@ -45,9 +46,15 @@ class Event(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+
+    def is_full(self):
+        return self.attendees.count() - self.capacity
+        
+    
     def __str__(self):
         return f"Event: {self.name} Description: {self.description} Start Date: {self.start_date} Start Time: {self.start_time} Location: {self.location}"
 
+    
 class Comment(models.Model):
     event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name = 'comments')
     author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name = 'author')
@@ -64,38 +71,40 @@ class Like(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='user')
 
     
-# class BookEvent(models.Model):
-#     BOOKING_STATUS = [
-#         ('confirmed', 'Confirmed'),
-#         ('pending', 'Pending'),
-#         ('cancelled', 'Cancelled')
-#     ]
-#     PAYMENT_STATUS = [
-#         ('select', 'Select Option'),
-#         ('unpaid', 'Unpaid'),
-#         ('paid', 'Paid'),
-#         ('refunded', 'Refunded')
-#     ]
+class BookEvent(models.Model):
+    BOOKING_STATUS = [
+        ('confirmed', 'Confirmed'),
+        ('pending', 'Pending'),
+        ('cancelled', 'Cancelled')
+    ]
+    PAYMENT_STATUS = [
+        ('select', 'Select Option'),
+        ('unpaid', 'Unpaid'),
+        ('paid', 'Paid'),
+        ('refunded', 'Refunded')
+    ]
 
-#     event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='booking')
-#     total_price = models.DecimalField(max_digits=10, decimal_places=2, default=0.00,)
-#     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='book_event')
-#     booking_status = models.CharField(max_length=100, default='Pending', choices = BOOKING_STATUS)
-#     number_of_tickets = models.PositiveIntegerField(default=1)
-#     payment_status = models.DecimalField(max_digits=10, decimal_places=2, default=0.00, choices=PAYMENT_STATUS)
-#     created_at = models.DateTimeField(auto_now_add=True)
-#     updated_at = models.DateTimeField(auto_now=True)
+    event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='booking')
+    total_price = models.DecimalField(max_digits=10, decimal_places=2, default=0.00,)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='booking')
+    booking_status = models.CharField(max_length=100, default='Pending', choices = BOOKING_STATUS)
+    number_of_tickets = models.PositiveIntegerField(default=1)
+    payment_status = models.DecimalField(max_digits=10, decimal_places=2, default=0.00, choices=PAYMENT_STATUS)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    
 
 
-#     def save(self, *args, **kwargs):
-#         if self.event.is_paid:
-#             self.total_price = self.number_of_tickets * self.event.price
-#         else:
-#             self.total_price = 0.00
-#         super().save(*args, **kwargs)
+    def save(self, *args, **kwargs):
+        if self.event.is_paid:
+            self.total_price = self.number_of_tickets * self.event.price
+        else:
+            self.total_price = 0.00
+        super().save(*args, **kwargs)
 
-#     def __str__(self):
-#         return self.booking_status
-    #this model will define the relationship between events and users who book them
+    def __str__(self):
+        return self.booking_status
+#this model will define the relationship between events and users who book them
 
 

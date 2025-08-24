@@ -7,6 +7,7 @@ from events.api.views import (
     CommentDetailAPIView,
     LikePostAPIView,
     UnlikePostAPIView,
+    BookEventView
     )
 
 
@@ -20,5 +21,6 @@ urlpatterns = [
     path('<int:event_id>/comments/', CommentListAPIView.as_view(), name = 'comment-list'),
     path('<int:pk>/like/', LikePostAPIView.as_view(), name='like'),
     path('<int:event_id>/unlike/', UnlikePostAPIView.as_view(), name='unlike'),
+    path('<int:pk>/book/', BookEventView.as_view(), name='booking'),
     path('filter/', EventFilterList.as_view(), name='event-list'),
 ]
