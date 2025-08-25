@@ -13,7 +13,7 @@ they can perfrom CRUD operation such as
 
 ### ---- END POINT FOR USER REGISTRATION ----####
 
-    api/register/
+    api/users/register/
 
 ### TEST DATA
 
@@ -31,7 +31,7 @@ Then they can login using this endpoint
 
 ### --- END POINT FOR LOGING IN ---###
 
-api/login/
+api/users/login/
 
 ### --- TEST DATA ---
 

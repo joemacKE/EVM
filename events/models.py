@@ -2,7 +2,6 @@ from django.db import models
 from django.conf import settings
 from django.core.validators import MinValueValidator
 
-
 class Event(models.Model):
     TYPE_OF_EVENT = [
         ('select', 'Select an Event'),

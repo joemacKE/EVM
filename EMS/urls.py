@@ -12,7 +12,7 @@ urlpatterns = [
     path('api-auth/', include('rest_framework.urls')),
     # path('api/accounts/', include('accounts/api.urls')),
     path('api/events/', include('events.api.urls')),
-    path('api/', include('accounts.api.urls')),
+    path('api/users/', include('accounts.api.urls')),
 
     # JWT Authentication URLs
     path('api/token/', TokenObtainPairView.as_view(), name='token-obtain-pair'),
