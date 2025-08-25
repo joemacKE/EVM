@@ -89,7 +89,7 @@ class BookEvent(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='booking')
     booking_status = models.CharField(max_length=100, default='Pending', choices = BOOKING_STATUS)
     number_of_tickets = models.PositiveIntegerField(default=1)
-    payment_status = models.DecimalField(max_digits=10, decimal_places=2, default=0.00, choices=PAYMENT_STATUS)
+    payment_status = models.CharField(max_length=120, choices=PAYMENT_STATUS)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     

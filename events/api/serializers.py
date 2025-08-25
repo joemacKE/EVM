@@ -1,14 +1,17 @@
 from rest_framework import serializers
-from events.models import Event, Comment, BookEvent
+from events.models import Event, Comment, BookEvent, Like
 from django.conf import settings
 from django.utils import timezone
 
 
 
 class CommentSerializer(serializers.ModelSerializer):
+    author = serializers.StringRelatedField(read_only=True)  # shows username instead of ID
+    event = serializers.PrimaryKeyRelatedField(read_only=True)
+
     class Meta:
         model = Comment
-        fields = ["comment", 'author', 'created_at']
+        fields = ["id", "comment", "author", "event", "created_at", "updated_at"]
 
 class EventSerializer(serializers.ModelSerializer):
      comments = CommentSerializer(many=True, read_only= True)
@@ -61,7 +64,6 @@ class EventSerializer(serializers.ModelSerializer):
             instance = super().update(instance, validated_data)
             return instance
     
-
 class BookSerializer(serializers.ModelSerializer):
     class Meta:
         model = BookEvent
@@ -75,14 +77,13 @@ class BookSerializer(serializers.ModelSerializer):
             if event.attendees.count() + tickets_requested > event.capacity:
                 raise serializers.ValidationError('This event is fully booked')
             return data
+        def validate_booking_status(self, value):
+            if value['payment_status'] == "confirmed":
+                self.booking_status = 'paid'
+
+
                 
                 
-class CommentSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Comment
-        fileds = ['id', 'comment', 'created_at']
-        read_only_fields = ['created_at', 'updated_at']
-        exclude = ['updated_at', 'id']
 
     
     def create(self, validate_data):
@@ -107,3 +108,7 @@ class CommentSerializer(serializers.ModelSerializer):
         instance.save()
         return instance
 
+class LikeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Like
+        fields = "__all__"

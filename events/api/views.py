@@ -125,51 +125,68 @@ class CommentListAPIView(APIView):
         serializer = CommentSerializer(comments, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
     
+# class CommentDetailAPIView(APIView):
+#     authentication_classes = [SessionAuthentication, BasicAuthentication, TokenAuthentication]
+#     permission_classes = [IsAuthenticated]
+#     def get(self, request, event_id):
+#         try:
+#             event = Event.objects.get(pk=event_id)
+#         except Event.DoesNotExist:
+#             return Response({'error': 'No event by that ID found'}, status=status.HTTP_404_NOT_FOUND)
+#         comments = Comment.objects.filter(event_id = event_id) 
+#         serializer = CommentSerializer(data=request.data,  many=True)
+#         return Response(serializer.data, status=status.HTTP_200_OK)
+    
+
 class CommentDetailAPIView(APIView):
     authentication_classes = [SessionAuthentication, BasicAuthentication, TokenAuthentication]
     permission_classes = [IsAuthenticated]
-    def get(self, request, event_id):
-        try:
-            event = Event.objects.get(pk=event_id)
-        except Event.DoesNotExist:
-            return Response({'error': 'No event by that ID found'}, status=status.HTTP_404_NOT_FOUND)
-        comments = Comment.objects.filter(event_id = event_id) 
-        serializer = CommentSerializer(comments, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-    
 
     def post(self, request, event_id):
         try:
             event = Event.objects.get(pk=event_id)
         except Event.DoesNotExist:
             return Response({'error': 'Event not found!'}, status=status.HTTP_404_NOT_FOUND)
+
         serializer = CommentSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save(event=event, author=request.user) #this line attaches event and author automatically
+            serializer.save(event=event, author=request.user)  # inject automatically
             return Response(serializer.data, status=status.HTTP_201_CREATED)
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
 
 class LikePostAPIView(APIView):
     permission_classes = [IsAuthenticated]
     authentication_classes = [SessionAuthentication, BasicAuthentication, TokenAuthentication]
     
 
-    def get(self, request, pk):
-        try:
-            event = generics.get_object_or_404(Event, pk=pk)
-        except Event.DoesNotExist:
-            return Response({'error':'The event could not be found'}, status=status.HTTP_404_NOT_FOUND)
-        
-        like = Like.objects.get_or_create(user=request.user, event=event)
+class LikePostAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [SessionAuthentication, BasicAuthentication, TokenAuthentication]
 
+    def post(self, request, pk):
+        event = generics.get_object_or_404(Event, pk=pk)
+
+        like, created = Like.objects.get_or_create(user=request.user, event=event)
+
+        if not created:
+            # User already liked → Unlike instead
+            like.delete()
+            return Response({'message': 'Event unliked successfully!'}, status=status.HTTP_200_OK)
+
+        # If user newly liked, send notification
         if event.organizer != request.user:
             Notification.objects.create(
-                recipient = event.organizer,
-                actor = request.user,
-                verb = 'liked your event',
-                target = event
+                recipient=event.organizer,
+                actor=request.user,
+                verb='liked your event',
+                target=event
             )
-        return Response({'message':'Event liked succesfully!'}, status=status.HTTP_201_CREATED)
+
+        return Response({'message': 'Event liked successfully!'}, status=status.HTTP_201_CREATED)
+
 
 class UnlikePostAPIView(APIView):
     permission_classes = [IsAuthenticated]
