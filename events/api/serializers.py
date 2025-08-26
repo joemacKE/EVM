@@ -2,7 +2,7 @@ from rest_framework import serializers
 from events.models import Event, Comment, BookEvent, Like
 from django.conf import settings
 from django.utils import timezone
-
+from datetime import datetime
 
 
 class CommentSerializer(serializers.ModelSerializer):
@@ -81,7 +81,10 @@ class EventSerializer(serializers.ModelSerializer):
             #overiding the update method to handle updates
             instance = super().update(instance, validated_data)
             return instance
-    
+     
+        def create(self, validate_data):
+            return Event.objects.create(**validate_data)
+
 class BookSerializer(serializers.ModelSerializer):
     class Meta:
         model = BookEvent
@@ -94,30 +97,25 @@ class BookSerializer(serializers.ModelSerializer):
             tickets_requested = data.get('number_of_tickets', 1)
             if event.attendees.count() + tickets_requested > event.capacity:
                 raise serializers.ValidationError('This event is fully booked')
-            return data
-        
-        def validate(self, data):
-            event = data['event']
-            tickets = data['number_of_tickets']
-            if event.attendees.count() + tickets > event.capacity:
-                raise serializers.ValidationError("Not enough slots for this booking")
-            return data
-        
-        def validate(self, data):
+            
+            #prevent booking past events
+            event_datetime = datetime.combine(event.start_date, event.start_time)
+            if event_datetime < datetime.now():
+                raise serializers.ValidationError("You cannot book past events or that has started")
+            #Enforce payment logic
             if data['event'].is_paid and data['payment_status'] == "unpaid":
                 raise serializers.ValidationError("Paid events cannot be booked with unpaid status")
+            
             return data
-        
 
 
+    def create(self, validated_data):
+        return BookEvent.objects.create(**validated_data)
 
                 
                 
 
-    
-    def create(self, validate_data):
-        return Event.objects.create(**validate_data)
-
+   
     #handles the updates
     def update(self, instance,  validated_data):
         instance.name = validated_data.get('name', instance.name)

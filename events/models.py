@@ -24,7 +24,8 @@ class Event(models.Model):
         ('upcoming', 'Upcoming'),
         ('ongoing', 'ongoing'),
         ('cancelled', 'Cancelled'),
-        ('completed', 'Completed')
+        ('completed', 'Completed'),
+        ('past', 'Past Events'),
     ]
     organizer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='events')
     attendees = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='attendees', blank=True)

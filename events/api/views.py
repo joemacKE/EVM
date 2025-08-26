@@ -125,18 +125,6 @@ class CommentListAPIView(APIView):
         serializer = CommentSerializer(comments, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
     
-# class CommentDetailAPIView(APIView):
-#     authentication_classes = [SessionAuthentication, BasicAuthentication, TokenAuthentication]
-#     permission_classes = [IsAuthenticated]
-#     def get(self, request, event_id):
-#         try:
-#             event = Event.objects.get(pk=event_id)
-#         except Event.DoesNotExist:
-#             return Response({'error': 'No event by that ID found'}, status=status.HTTP_404_NOT_FOUND)
-#         comments = Comment.objects.filter(event_id = event_id) 
-#         serializer = CommentSerializer(data=request.data,  many=True)
-#         return Response(serializer.data, status=status.HTTP_200_OK)
-    
 
 class CommentDetailAPIView(APIView):
     authentication_classes = [SessionAuthentication, BasicAuthentication, TokenAuthentication]
@@ -155,12 +143,6 @@ class CommentDetailAPIView(APIView):
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-
-
-class LikePostAPIView(APIView):
-    permission_classes = [IsAuthenticated]
-    authentication_classes = [SessionAuthentication, BasicAuthentication, TokenAuthentication]
-    
 
 class LikePostAPIView(APIView):
     permission_classes = [IsAuthenticated]
