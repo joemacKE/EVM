@@ -3,7 +3,7 @@ from events.models import Event, Comment, BookEvent, Like
 from django.conf import settings
 from django.db.models import Sum
 from django.utils import timezone
-from datetime import datetime
+from datetime import datetime, time
 
 
 class CommentSerializer(serializers.ModelSerializer):
@@ -21,18 +21,62 @@ class CommentSerializer(serializers.ModelSerializer):
 
 class EventSerializer(serializers.ModelSerializer):
     comments = CommentSerializer(many=True, read_only= True)
+    status = serializers.SerializerMethodField()
+    allow_booking = serializers.SerializerMethodField()
     class Meta:
         model = Event
         fields = '__all__'
-        read_only_fields = ['created_at', 'updated_at', 'organizer']
+        read_only_fields = ['created_at', 'status', 'allow_booking', 'updated_at', 'organizer']
+
+    def get_status(self, obj):
+        return obj.current_status
+    
+    def get_allow_booking(self, obj):
+        return obj.booking_allowed
         
+    # --- Cross-field validation ---
+    def validate(self, data):
+        start_date = data.get("start_date")
+        start_time = data.get("start_time")
+        end_date = data.get("end_date")
+        end_time = data.get("end_time")
+
+        if isinstance(start_time, list):
+            try:
+                start_time = time(*map(int, start_time))  # e.g. ["14","40","00"] → 14:40:00
+                data["start_time"] = start_time
+            except Exception:
+                raise serializers.ValidationError("Invalid start_time format")
+
+        if isinstance(end_time, list):
+            try:
+                end_time = time(*map(int, end_time))
+                data["end_time"] = end_time
+            except Exception:
+                raise serializers.ValidationError("Invalid end_time format")
+    # Combine date + time to check full datetime
+        start_dt = datetime.combine(start_date, start_time)
+        end_dt = datetime.combine(end_date, end_time)
+        if timezone.is_naive(start_dt):
+            start_dt = timezone.make_aware(start_dt, timezone.get_current_timezone())
+        if timezone.is_naive(end_dt):
+            end_dt = timezone.make_aware(end_dt, timezone.get_current_timezone())
+
+        # 🔹 Validation rules
+        if start_dt < timezone.now():
+            raise serializers.ValidationError("Event cannot start in the past")
+        if end_dt <= start_dt:
+            raise serializers.ValidationError("End date/time must be after start date/time")
+
+        return data
     def validate_name(self, value):
         if len(value) < 3:
             raise serializers.ValidationError("Event name must be at least 3 characters long.")
         return value
 
     def validate_start_date(self, value):
-        if value < timezone.now().date():
+        now = timezone.localtime(timezone.now()).date()
+        if value < now:
             raise serializers.ValidationError("The event cannot start in the past")
         return value
 
@@ -56,25 +100,6 @@ class EventSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Please select a valid event category")
         return value
 
-    # --- Cross-field validation ---
-    def validate(self, data):
-    # Combine date + time to check full datetime
-        start_datetime = datetime.combine(data['start_date'], data['start_time'])
-        if start_datetime < timezone.now():
-            raise serializers.ValidationError("The event cannot start in the past")
-
-        # End datetime must be after start datetime
-        end_datetime = datetime.combine(data['end_date'], data['end_time'])
-        if end_datetime <= start_datetime:
-            raise serializers.ValidationError("End date/time must be after start date/time")
-
-        # Price rules
-        if data.get('is_paid') and (data.get('price') is None or data['price'] <= 0):
-            raise serializers.ValidationError("Paid events must have a price greater than 0.")
-        if not data.get('is_paid') and data.get('price', 0) > 0:
-            raise serializers.ValidationError("Free events cannot have a price.")
-
-        return data
 
         
     def update(self, instance, validated_data):

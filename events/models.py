@@ -1,6 +1,8 @@
 from django.db import models
 from django.conf import settings
 from django.core.validators import MinValueValidator
+from django.utils import timezone
+from datetime import datetime
 
 class Event(models.Model):
     TYPE_OF_EVENT = [
@@ -37,7 +39,8 @@ class Event(models.Model):
     start_time = models.TimeField()
     end_time = models.TimeField()
     capacity = models.PositiveIntegerField(validators=[MinValueValidator(10)], default=10)
-    status = models.CharField(max_length=120, choices=STATUS_CHOICES)
+    status = models.CharField(max_length=120, choices=STATUS_CHOICES, default='upcoming')
+    allow_booking = models.BooleanField(default=True, null=False)
     is_paid = models.BooleanField(default=False)
     price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, default=0.00)
     image = models.ImageField(upload_to='images/', null=True, blank=True)
@@ -45,6 +48,47 @@ class Event(models.Model):
     location = models.CharField(max_length=200)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+
+    @property
+    def current_status(self):
+        tz = timezone.get_current_timezone()
+        now = timezone.localtime(timezone.now())
+
+        start_dt = datetime.combine(self.start_date, self.start_time, tzinfo=tz)
+        end_dt = datetime.combine(self.end_date, self.end_time, tzinfo=tz)
+
+        if now < start_dt:
+            return "upcoming"
+        elif start_dt <= now <= end_dt:
+            return "ongoing"
+        else:
+            return "completed"
+    
+    @property
+    def booking_allowed(self):
+        return self.current_status in ["upcoming", "ongoing"]
+
+    
+    def save(self, *args, **kwargs):
+        #this logic automatically calculates the status field
+        tz = timezone.get_current_timezone()
+        now = timezone.localtime(timezone.now())
+
+        start_dt = datetime.combine(self.start_date, self.start_time, tzinfo=tz)
+        end_dt = datetime.combine(self.end_date, self.end_time, tzinfo=tz)
+
+        if now < start_dt:
+            self.status == 'upcoming'
+            self.allow_booking = True
+        elif start_dt <= now <= end_dt:
+            self.status == "ongoing"
+            self.allow_booking = False
+        
+        elif now > end_dt:
+            self.status == "completed"
+            self.allow_booking = False
+        super().save(*args, **kwargs)
 
 
     def is_full(self):
