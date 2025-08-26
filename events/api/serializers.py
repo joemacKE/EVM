@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from events.models import Event, Comment, BookEvent, Like
 from django.conf import settings
+from django.db.models import Sum
 from django.utils import timezone
 from datetime import datetime
 
@@ -19,71 +20,70 @@ class CommentSerializer(serializers.ModelSerializer):
         return value
 
 class EventSerializer(serializers.ModelSerializer):
-     comments = CommentSerializer(many=True, read_only= True)
-     class Meta:
+    comments = CommentSerializer(many=True, read_only= True)
+    class Meta:
         model = Event
         fields = '__all__'
         read_only_fields = ['created_at', 'updated_at', 'organizer']
+        
+    def validate_name(self, value):
+        if len(value) < 3:
+            raise serializers.ValidationError("Event name must be at least 3 characters long.")
+        return value
 
-        def validate_name(self, value):
-            if len(value) < 3:
-                raise serializers.ValidationError("Event name must be at least 3 characters long.")
-            return value
-        def validate_start_date(self, value):
-        #checks if start_date comes before end_date
-            if value < timezone.now().date():
-                raise serializers.ValidationError("The event cannot start in the past")
-            return value
+    def validate_start_date(self, value):
+        if value < timezone.now().date():
+            raise serializers.ValidationError("The event cannot start in the past")
+        return value
 
-        def validate(self, data):
-            #checks if start_date is before end_date
-            if data['end_date'] <= data['start_date']:
-                raise serializers.ValidationError("End date must be after start date")
-            return data
-        def validate(self, data):
-            if data['end_time'] <= data['start_time']:
-                raise serializers.ValidationError("ENd time must be after start time")
-            return data
-        def validate(self, data):
-            if data.get('is_paid') and (data.get('price')is None or data['price'] <= 0):
-                raise serializers.ValidationError("Paid events must have aprice greater than 0.")
-            if not data.get('is_paid') and data.get('price', 0) > 0:
-                raise serializers.ValidationError('Free events cannot have a price.')
-            return data
+    def validate_capacity(self, value):
+        if value < 10:
+            raise serializers.ValidationError("You must have a minimum of 10 people for an event")
+        return value
+
+    def validate_is_paid(self, value):
+        price = self.initial_data.get('price', 0)
+        try:
+            price = float(price)
+        except (TypeError, ValueError):
+            price = 0
+        if value and price <= 0:
+            raise serializers.ValidationError("If the event is paid, the price must be greater than 0")
+        return value
+
+    def validate_category(self, value):
+        if value == 'select':
+            raise serializers.ValidationError("Please select a valid event category")
+        return value
+
+    # --- Cross-field validation ---
+    def validate(self, data):
+    # Combine date + time to check full datetime
+        start_datetime = datetime.combine(data['start_date'], data['start_time'])
+        if start_datetime < timezone.now():
+            raise serializers.ValidationError("The event cannot start in the past")
+
+        # End datetime must be after start datetime
+        end_datetime = datetime.combine(data['end_date'], data['end_time'])
+        if end_datetime <= start_datetime:
+            raise serializers.ValidationError("End date/time must be after start date/time")
+
+        # Price rules
+        if data.get('is_paid') and (data.get('price') is None or data['price'] <= 0):
+            raise serializers.ValidationError("Paid events must have a price greater than 0.")
+        if not data.get('is_paid') and data.get('price', 0) > 0:
+            raise serializers.ValidationError("Free events cannot have a price.")
+
+        return data
+
         
-        def validate_capacity(self, value):
-            #checks if capacity is greater than 10
-            if value < 10:
-                raise serializers.ValidationError("You must have a minimum of 10 people for an event")
-            return value
-        
-        def validate_is_paid(self, value):
-        # checks if is_paid is True, then price must be greater than 0
-            price = self.initial_data.get('price', 0)
-            try:
-                price = float(price)
-            except (TypeError, ValueError):
-                price = 0
-            if value and price <= 0:
-                raise serializers.ValidationError("If the event is paid, the price must be greater than 0")
-            return value
-        
-        def validate_category(self, value):
-            #checks if category is selected
-            try:
-                if value == 'select':
-                    raise serializers.ValidationError("Please select a valid event category")
-            except KeyError:
-                raise serializers.ValidationError("Invalid Category selected")
-            return value
-        
-        def update(self, instance, validated_data):
-            #overiding the update method to handle updates
-            instance = super().update(instance, validated_data)
-            return instance
-     
-        def create(self, validate_data):
-            return Event.objects.create(**validate_data)
+    def update(self, instance, validated_data):
+        #overiding the update method to handle updates
+        instance = super().update(instance, validated_data)
+        return instance
+    
+    def create(self, validate_data):
+        return Event.objects.create(**validate_data)
 
 class BookSerializer(serializers.ModelSerializer):
     class Meta:
@@ -91,26 +91,33 @@ class BookSerializer(serializers.ModelSerializer):
         fields = "__all__"
         read_only_fields = ['created_at', 'updated_at', 'payment_status', 'total_price']
 
-        def validate(self, data):
-            event = data['event']
-            #checks if their is still slot for booking
-            tickets_requested = data.get('number_of_tickets', 1)
-            if event.attendees.count() + tickets_requested > event.capacity:
-                raise serializers.ValidationError('This event is fully booked')
-            
-            #prevent booking past events
-            event_datetime = datetime.combine(event.start_date, event.start_time)
-            if event_datetime < datetime.now():
-                raise serializers.ValidationError("You cannot book past events or that has started")
-            #Enforce payment logic
-            if data['event'].is_paid and data['payment_status'] == "unpaid":
-                raise serializers.ValidationError("Paid events cannot be booked with unpaid status")
-            
-            return data
-
 
     def create(self, validated_data):
-        return BookEvent.objects.create(**validated_data)
+            event = validated_data["event"]        # present because you passed it in save()
+            tickets = validated_data.get("number_of_tickets", 1)
+
+            # Build aware datetimes
+            tz = timezone.get_current_timezone()
+            event_start = timezone.make_aware(datetime.combine(event.start_date, event.start_time), tz)
+            event_end   = timezone.make_aware(datetime.combine(event.end_date,   event.end_time),   tz)
+            now = timezone.now()
+
+            # Block anything that has started (change to `now > event_end` if you only want to block finished events)
+            if now >= event_start:
+                raise serializers.ValidationError("You cannot book an event that has already started or ended.")
+
+            # Capacity based on existing bookings (more reliable than attendees M2M)
+            already_booked = (
+                BookEvent.objects.filter(event=event)
+                .aggregate(total=Sum("number_of_tickets"))["total"] or 0
+            )
+            if already_booked + tickets > event.capacity:
+                raise serializers.ValidationError("Not enough seats available for this booking.")
+
+            # Payment rule
+            if event.is_paid and validated_data.get("payment_status") == "unpaid":
+                raise serializers.ValidationError("Paid events cannot be booked with unpaid status.")
+            return BookEvent.objects.create(**validated_data)
 
                 
                 
