@@ -113,7 +113,7 @@ class EventDetailAPIView(APIView):
         return Response("Event is deleted succesfully", status = status.HTTP_200_OK)
 
 class CommentListAPIView(APIView):
-    authentication_classes = [SessionAuthentication, BasicAuthentication, TokenAuthentication]
+    authentication_classes = [SessionAuthentication, BasicAuthentication]
     permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get(self, request, event_id):
