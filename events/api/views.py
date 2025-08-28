@@ -48,7 +48,8 @@ class EventListAPIView(APIView):
         # retrieves all events
         try:
 
-            queryset = Event.objects.all()
+            queryset = Event.objects.all().order_by('id')
+
             filterset = EventFilter(request.GET, queryset=Event.objects.all())
         except Event.DoesNotExist:
             return Response({'error': 'No events found'}, status=status.HTTP_404_NOT_FOUND)
