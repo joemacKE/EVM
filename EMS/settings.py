@@ -14,10 +14,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-d-m13m65ii!@i-i5kplu^f0@g&b)lqaqgt297&if)-#r7fi$6t'
+SECRET_KEY = os.environ.get("SECRECT_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = 'RENDER' not in os.environ
+DEBUG = os.environ.get("DEBUG", "False") == "True"
 
 SECURE_BROWSER_XSS_FILTER = True
 X_FRAME_OPTIONS = 'DENY'
@@ -27,10 +27,8 @@ CSRF_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = not DEBUG
 SESSION_COOKIE_SECURE = not DEBUG
 
-ALLOWED_HOSTS = []
-RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
-if RENDER_EXTERNAL_HOSTNAME:
-    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
+ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS").split(" ")
+
 SECURE_SSL_REDIRECT = not DEBUG
 SECURE_HSTS_SECONDS = 31536000
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True
@@ -107,26 +105,13 @@ WSGI_APPLICATION = 'EMS.wsgi.application'
 # #         'NAME': BASE_DIR / 'db.sqlite3',
 # #     }
 # # }
+database_url = os.environ.get("DATABASE_URL")
 DATABASES = {
-     'default': dj_database_url.parse('postgresql://event_management_user:Bf6sCGODmLQjtxXnSKrme3hRQMIqbP1R@dpg-d2o7ap6mcj7s73b8j3c0-a.oregon-postgres.render.com/event_management_database_cb4h',
+     'default': dj_database_url.parse(database_url,
          conn_max_age=600
      )
 }
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.postgresql',
-#         'NAME': 'evm_db',        # create this DB too
-#         'USER': 'event_management_user',
-#         'PASSWORD': 'JosephMuga@2020',
-#         'HOST': 'localhost',
-#         'PORT': '5432',
-#     }
-# }
 
-#postgresql://event_management_user:Bf6sCGODmLQjtxXnSKrme3hRQMIqbP1R@dpg-d2o7ap6mcj7s73b8j3c0-a.oregon-postgres.render.com/event_management_database_cb4h
-
-# Password validation
-# https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [
     {
