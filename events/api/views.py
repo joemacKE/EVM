@@ -1,3 +1,4 @@
+import django_filters
 from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated, AllowAny
 from rest_framework.authentication import (SessionAuthentication, BasicAuthentication, TokenAuthentication)
 from events.api.serializers import EventSerializer, CommentSerializer, BookSerializer
@@ -13,10 +14,13 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.pagination import PageNumberPagination
 
 
+
 class IsOrganizerOrReadOnly(BasePermission):
     def has_object_permission(self, request, view, obj):
         return obj.organizer == request.user
-
+class IsCommentAuthorOrAdmin(BasePermission):
+    def has_object_permission(self, request, view, obj):
+        return obj.author == request.user
 class CustomPageNumberPagination(PageNumberPagination):
     page_size = 5
     page_size_query_param = 'page_size'
@@ -45,7 +49,7 @@ class EventListAPIView(APIView):
         try:
 
             queryset = Event.objects.all()
-            filterset = EventFilter(request.GET, queryset=queryset)
+            filterset = EventFilter(request.GET, queryset=Event.objects.all())
         except Event.DoesNotExist:
             return Response({'error': 'No events found'}, status=status.HTTP_404_NOT_FOUND)
         if filterset.is_valid():
@@ -72,7 +76,7 @@ class EventListAPIView(APIView):
 
 class EventDetailAPIView(APIView):
     authentication_classes = [SessionAuthentication, BasicAuthentication, TokenAuthentication]
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsOrganizerOrReadOnly]
 
     #retrieves a single event by ID
     def get(self, request, pk):
@@ -125,6 +129,7 @@ class CommentListAPIView(APIView):
         serializer = CommentSerializer(comments, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
     
+    
 
 class CommentDetailAPIView(APIView):
     authentication_classes = [SessionAuthentication, BasicAuthentication, TokenAuthentication]
@@ -142,6 +147,10 @@ class CommentDetailAPIView(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    # views.py
+
+
 
 
 class LikePostAPIView(APIView):

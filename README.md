@@ -90,6 +90,12 @@ All these operations can be performed following these ENDPOINTS
 
     /api/events/33/post/comments/
 
+### TEST DATA ------>
+
+{
+"comment":"Wow a must attend event."
+}
+
 ### TEST DATA
 
 {
