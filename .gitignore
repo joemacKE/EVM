@@ -1,2 +1,3 @@
 #enviornment variables
 .env
+__pycache__/
